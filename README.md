@@ -85,7 +85,6 @@ Designed with a premium Cash App-style interface, Lightning Pay converts USD amo
 
 ---
 
-# 📂 Project Structure
 
 # 📂 Project Structure
 
