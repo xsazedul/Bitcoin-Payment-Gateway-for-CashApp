@@ -1,0 +1,9 @@
+location / {
+    try_files $uri $uri/ /index.php?$query_string;
+}
+
+# If the app is hosted in a subdirectory (e.g., yoursite.com/OpneNode_CashApp/)
+# Use this block instead:
+# location /OpneNode_CashApp/ {
+#     try_files $uri $uri/ /OpneNode_CashApp/index.php?$query_string;
+# }

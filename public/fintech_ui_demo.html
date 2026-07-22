@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cash App Style Payment Gateway</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-green: #00C244;
+            --dark-green: #009933;
+            --deep-green: #007F2A;
+            --light-green: #00D653;
+            --bg-black: #000000;
+            --white: #FFFFFF;
+            --gray-text: #B3B3B3;
+            --glass-bg: rgba(0, 0, 0, 0.15);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-black);
+            color: var(--white);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Mobile Container Simulation */
+        .app-container {
+            width: 100%;
+            max-width: 400px;
+            height: 800px;
+            max-height: 95vh;
+            background-color: var(--primary-green);
+            border-radius: 40px;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0, 194, 68, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s;
+        }
+
+        .screen-hidden {
+            transform: translateX(100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .screen-back {
+            transform: translateX(-100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Header Components */
+        .header {
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .badge-secure {
+            background: var(--deep-green);
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 600;
+            gap: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Payment Method Card */
+        .method-card {
+            background: var(--dark-green);
+            border-radius: 24px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .method-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--primary-green);
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .method-name {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .method-status {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        /* Amount Display */
+        .amount-container {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .amount-display {
+            font-size: 64px;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .currency-label {
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0.8;
+            letter-spacing: 1px;
+        }
+
+        /* Keypad */
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: auto;
+            margin-bottom: 30px;
+        }
+
+        .key {
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 15px;
+            transition: background 0.2s;
+        }
+
+        .key:active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Buttons */
+        .btn-pay {
+            background: var(--deep-green);
+            color: var(--white);
+            border: none;
+            border-radius: 20px;
+            padding: 20px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            transition: transform 0.2s, background 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-pay:hover {
+            background: #006a23;
+        }
+
+        .btn-pay:active {
+            transform: scale(0.98);
+        }
+
+        /* Screen 2 Specific Styles */
+        .timer-badge {
+            background: var(--deep-green);
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0 auto 20px;
+        }
+
+        .checkout-amount {
+            font-size: 36px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .checkout-subtitle {
+            font-size: 12px;
+            text-align: center;
+            opacity: 0.8;
+            margin-bottom: 24px;
+        }
+
+        .qr-section {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 24px;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+
+        .qr-placeholder {
+            width: 200px;
+            height: 200px;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            border: 1px solid #eee;
+        }
+
+        .qr-center-logo {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: var(--primary-green);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 0 5px white;
+        }
+
+        .status-badge-awaiting {
+            background: rgba(0,0,0,0.2);
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 auto 24px;
+        }
+
+        .pulse {
+            width: 8px;
+            height: 8px;
+            background: var(--white);
+            border-radius: 50%;
+            animation: pulse-animation 1.5s infinite;
+        }
+
+        @keyframes pulse-animation {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+        }
+
+        .invoice-details {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-box {
+            background: var(--deep-green);
+            padding: 10px 14px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            margin-left: 15px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .detail-value {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            opacity: 0.8;
+        }
+
+        .copy-btn {
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .copy-btn:hover { opacity: 1; }
+
+        /* Animations */
+        .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Glass Glow Effect */
+        .glow {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(0, 214, 83, 0.4) 0%, rgba(0, 0, 0, 0) 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .glow-1 { top: -50px; left: -50px; }
+        .glow-2 { bottom: -50px; right: -50px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Glow effects for premium feel -->
+        <div class="glow glow-1"></div>
+        <div class="glow glow-2"></div>
+
+        <!-- SCREEN 1: KEYPAD -->
+        <div id="screen-keypad" class="screen">
+            <div class="header">
+                <h1>Pay Loveme1</h1>
+                <div class="badge-secure">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    SECURE PAYMENT
+                </div>
+            </div>
+
+            <div class="method-card">
+                <div class="method-icon">$</div>
+                <div class="method-name">Cashapp</div>
+                <div class="method-status">Instant</div>
+            </div>
+
+            <div class="amount-container">
+                <div class="amount-display">$<span id="display-amount">0</span></div>
+                <div class="currency-label">USD</div>
+            </div>
+
+            <div class="keypad">
+                <div class="key" onclick="appendNumber(1)">1</div>
+                <div class="key" onclick="appendNumber(2)">2</div>
+                <div class="key" onclick="appendNumber(3)">3</div>
+                <div class="key" onclick="appendNumber(4)">4</div>
+                <div class="key" onclick="appendNumber(5)">5</div>
+                <div class="key" onclick="appendNumber(6)">6</div>
+                <div class="key" onclick="appendNumber(7)">7</div>
+                <div class="key" onclick="appendNumber(8)">8</div>
+                <div class="key" onclick="appendNumber(9)">9</div>
+                <div class="key" onclick="appendNumber('.')">.</div>
+                <div class="key" onclick="appendNumber(0)">0</div>
+                <div class="key" onclick="deleteLast()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
+                </div>
+            </div>
+
+            <button class="btn-pay" onclick="goToCheckout()">
+                <span>Pay</span>
+                <div class="loading-spinner" id="pay-loader"></div>
+            </button>
+        </div>
+
+        <!-- SCREEN 2: CHECKOUT -->
+        <div id="screen-checkout" class="screen screen-hidden">
+            <div class="timer-badge">Time Remaining 19:58</div>
+            
+            <div style="text-align: center;">
+                <div class="checkout-subtitle">AMOUNT DUE</div>
+                <div class="checkout-amount" id="checkout-amount-display">$28.00</div>
+                <div class="checkout-subtitle" style="margin-bottom: 20px;">Scan or tap to Pay</div>
+            </div>
+
+            <div class="qr-section">
+                <!-- Using a real QR placeholder -->
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=lightning:lnbc10u1pwj9ypfpp589..." alt="QR Code" style="width: 200px; height: 200px;">
+                <div class="qr-center-logo">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+            </div>
+
+            <div class="status-badge-awaiting">
+                <div class="pulse"></div>
+                Awaiting Payment
+            </div>
+
+            <div class="invoice-details">
+                <div class="detail-row">
+                    <span>Invoice ID</span>
+                    <div class="detail-box">
+                        <span class="detail-value">2f3bfa02...ac972586</span>
+                        <div class="copy-btn" onclick="copyText('2f3bfa02...ac972586')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <span>Lightning</span>
+                    <div class="detail-box">
+                        <span class="detail-value">lnbc357890...spd6p0gh</span>
+                        <div class="copy-btn" onclick="copyText('lnbc357890...spd6p0gh')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-pay" style="background: var(--dark-green); margin-top: auto;" onclick="resetApp()">
+                <div style="width: 20px; height: 20px; background: rgba(255,255,255,0.2); border-radius: 4px; display: flex; justify-content: center; align-items: center; font-size: 12px; font-weight: 800;">$</div>
+                <span>Pay Now</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentAmount = "0";
+        const displayEl = document.getElementById('display-amount');
+        const keypadScreen = document.getElementById('screen-keypad');
+        const checkoutScreen = document.getElementById('screen-checkout');
+        const checkoutAmountEl = document.getElementById('checkout-amount-display');
+        const payLoader = document.getElementById('pay-loader');
+
+        function appendNumber(num) {
+            if (currentAmount === "0" && num !== ".") {
+                currentAmount = num.toString();
+            } else {
+                // Prevent multiple decimals
+                if (num === "." && currentAmount.includes(".")) return;
+                // Limit decimals to 2
+                if (currentAmount.includes(".")) {
+                    const parts = currentAmount.split(".");
+                    if (parts[1].length >= 2) return;
+                }
+                currentAmount += num.toString();
+            }
+            updateDisplay();
+        }
+
+        function deleteLast() {
+            if (currentAmount.length > 1) {
+                currentAmount = currentAmount.slice(0, -1);
+            } else {
+                currentAmount = "0";
+            }
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            displayEl.textContent = currentAmount;
+        }
+
+        function goToCheckout() {
+            if (parseFloat(currentAmount) <= 0) {
+                alert("Please enter an amount");
+                return;
+            }
+
+            // Simulate loading
+            payLoader.style.display = "block";
+            setTimeout(() => {
+                payLoader.style.display = "none";
+                checkoutAmountEl.textContent = "$" + parseFloat(currentAmount).toFixed(2);
+                
+                keypadScreen.classList.add('screen-back');
+                checkoutScreen.classList.remove('screen-hidden');
+            }, 1000);
+        }
+
+        function resetApp() {
+            checkoutScreen.classList.add('screen-hidden');
+            keypadScreen.classList.remove('screen-back');
+            currentAmount = "0";
+            updateDisplay();
+        }
+
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Copied: " + text);
+            });
+        }
+
+        // Timer countdown simulation
+        let time = 19 * 60 + 58;
+        const timerBadge = document.querySelector('.timer-badge');
+        setInterval(() => {
+            if (time > 0) {
+                time--;
+                const mins = Math.floor(time / 60);
+                const secs = time % 60;
+                timerBadge.textContent = `Time Remaining ${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
